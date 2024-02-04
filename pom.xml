@@ -8,8 +8,8 @@
     <artifactId>Assignment1</artifactId>
     <version>1.0</version>
     <modules>
-        <module>local</module>
         <module>common</module>
+        <module>local</module>
         <module>manager</module>
         <module>worker</module>
     </modules>

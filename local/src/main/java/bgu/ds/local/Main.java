@@ -7,6 +7,7 @@ public class Main {
     public static void main(String[] args) {// args = [inFilePath, outFilePath, tasksPerWorker, -t (terminate, optional)]
         try {
             setup();
+            aws.createInstance();
         } catch (Exception e) {
             e.printStackTrace();
         }

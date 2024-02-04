@@ -9,8 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>Worker</artifactId>
-    <groupId>bgu.ds.worker</groupId>
+    <artifactId>worker</artifactId>
     <build>
         <plugins>
             <plugin>
