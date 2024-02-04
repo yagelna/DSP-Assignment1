@@ -88,15 +88,7 @@ public class AWS {
     }
 
     private static String getEC2userData(String mode) {
-        String userData = "";
-        userData = userData + "#!/bin/bash" + "\n";
-        userData = userData + "exec >> /tmp/log" + "\n";
-        userData = userData + "exec 2>&1" + "\n";
-        userData = userData + "AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)" + "\n";
-        userData = userData + "AWS_REGION=us-east-1" + "\n";
-        userData = userData + "aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com" + "\n";
-        userData = userData + "docker pull $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/assignments:latest" + "\n";
-        userData = userData + "docker run -d -e MODE="+ mode + " $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/assignments:latest" + "\n";
+        String userData = String.join("\n", AWSConfigProvider.getConfig().userDataCommands());
         String base64UserData = null;
         try {
             base64UserData = new String( Base64.getEncoder().encode(userData.getBytes("UTF-8")), "UTF-8" );

@@ -10,6 +10,6 @@ if [ "$MODE" = "MANAGER" ]; then
 elif [ "$MODE" = "WORKER" ]; then
     java -jar Worker.jar
 else
-    echo "Error: Invalid MODE value. MODE must be either 'manager' or 'worker'."
+    echo "Error: Invalid MODE value. MODE must be either 'MANAGER' or 'WORKER'."
     exit 1
 fi
