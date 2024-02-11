@@ -14,15 +14,6 @@ IMAGE_NAME="assignment1"
 
 AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query "Account" --output text)
 
-# Execute Maven clean install to build application jar files
-echo "Executing Maven clean install..."
-if ! mvn clean install; then
-    echo "Failed to execute Maven clean install. Aborting."
-    exit 1
-else
-    echo "Maven clean install completed successfully."
-fi
-
 # Check if the ECR repository exists, if not, create it
 if ! aws ecr describe-repositories --repository-names "$ECR_REPOSITORY" --region "$AWS_REGION" > /dev/null 2>&1; then
     echo "ECR repository '$ECR_REPOSITORY' not found. Creating..."

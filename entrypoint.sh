@@ -6,9 +6,9 @@ if [ -z "$MODE" ]; then
 fi
 
 if [ "$MODE" = "MANAGER" ]; then
-    java -jar Manager.jar
+    java -jar target/manager/manager.jar
 elif [ "$MODE" = "WORKER" ]; then
-    java -jar Worker.jar
+    java -jar target/worker/worker.jar
 else
     echo "Error: Invalid MODE value. MODE must be either 'MANAGER' or 'WORKER'."
     exit 1
