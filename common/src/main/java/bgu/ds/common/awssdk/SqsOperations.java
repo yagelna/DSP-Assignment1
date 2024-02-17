@@ -6,6 +6,7 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
@@ -25,8 +26,12 @@ public class SqsOperations {
 
     public boolean createQueueIfNotExists(String QueueName) {
         try {
+            // Enable long polling when creating a queue.
+            HashMap<QueueAttributeName, String> attributes = new HashMap<>();
+            attributes.put(QueueAttributeName.RECEIVE_MESSAGE_WAIT_TIME_SECONDS, "20");
             CreateQueueRequest request = CreateQueueRequest.builder()
                     .queueName(QueueName)
+                    .attributes(attributes)
                     .build();
             sqsClient.createQueue(request);
             return true;

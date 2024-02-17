@@ -12,8 +12,8 @@ public class sqsVisibilityTimeoutExtender extends Thread{
     private static final Logger logger = LoggerFactory.getLogger(SqsMessageConsumer.class);
     private final SqsOperations sqs = SqsOperations.getInstance();
     private final String queueUrl;
-    private int visibilityTimeout;
-    private int threadSleepTime;
+    private final int visibilityTimeout;
+    private final int threadSleepTime;
     private final Set<Message> inProcessMessages = ConcurrentHashMap.newKeySet();
     private volatile boolean terminate = false;
 
