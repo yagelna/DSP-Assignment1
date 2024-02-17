@@ -1,11 +1,13 @@
 package bgu.ds.common.awssdk;
 
 import bgu.ds.common.sqs.protocol.SqsMessage;
+import com.google.common.collect.Lists;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.*;
 
 import java.util.List;
+import java.util.UUID;
 
 public class SqsOperations {
     private final SqsClient sqsClient;
@@ -49,16 +51,18 @@ public class SqsOperations {
     }
 
     public void sendBatchMessages(String queueUrl, List<? extends SqsMessage> messages) {
-        List<SendMessageBatchRequestEntry> entries = messages.stream()
-                .map(message -> SendMessageBatchRequestEntry.builder()
-                        .messageBody(message.toJSON())
-                        .build())
-                .toList();
-        SendMessageBatchRequest sendBatchRequest = SendMessageBatchRequest.builder()
-                .queueUrl(queueUrl)
-                .entries(entries)
-                .build();
-        sqsClient.sendMessageBatch(sendBatchRequest);
+        Lists.partition(messages, 10).forEach(partition -> {
+            SendMessageBatchRequest sendBatchRequest = SendMessageBatchRequest.builder()
+                    .queueUrl(queueUrl)
+                    .entries(partition.stream()
+                            .map(message -> SendMessageBatchRequestEntry.builder()
+                                    .id(UUID.randomUUID().toString())
+                                    .messageBody(message.toJSON())
+                                    .build())
+                            .toList())
+                    .build();
+            sqsClient.sendMessageBatch(sendBatchRequest);
+        });
     }
 
     public List<Message> receiveMessage(String queueUrl, int visibilityTimeout) {
@@ -77,12 +81,19 @@ public class SqsOperations {
         sqsClient.deleteMessage(deleteRequest);
     }
 
-    public void extendVisibilityTimeout(String queueUrl, String receiptHandle, int visibilityTimeout) {
-        ChangeMessageVisibilityRequest changeRequest = ChangeMessageVisibilityRequest.builder()
-                .queueUrl(queueUrl)
-                .receiptHandle(receiptHandle)
-                .visibilityTimeout(visibilityTimeout)
-                .build();
-        sqsClient.changeMessageVisibility(changeRequest);
+    public void extendVisibilityTimeoutBatch(String queueUrl, List<String> receiptHandles, int visibilityTimeout) {
+        Lists.partition(receiptHandles, 10).forEach(partition -> {
+            ChangeMessageVisibilityBatchRequest sendBatchRequest = ChangeMessageVisibilityBatchRequest.builder()
+                    .queueUrl(queueUrl)
+                    .entries(partition.stream()
+                            .map(receiptHandle -> ChangeMessageVisibilityBatchRequestEntry.builder()
+                                    .id(UUID.randomUUID().toString())
+                                    .receiptHandle(receiptHandle)
+                                    .visibilityTimeout(visibilityTimeout)
+                                    .build())
+                            .toList())
+                    .build();
+            sqsClient.changeMessageVisibilityBatch(sendBatchRequest);
+        });
     }
 }

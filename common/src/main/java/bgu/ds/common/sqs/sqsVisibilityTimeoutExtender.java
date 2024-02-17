@@ -36,13 +36,13 @@ public class sqsVisibilityTimeoutExtender extends Thread{
 
     public void run() {
         while (!terminate || !inProcessMessages.isEmpty()) {
-            for (Message message : inProcessMessages) {
-                try {
-                    sqs.extendVisibilityTimeout(queueUrl, message.receiptHandle(), this.visibilityTimeout);
-                } catch (Exception e) {
-                    logger.error("Failed to extend visibility timeout", e);
-                }
+            try {
+                sqs.extendVisibilityTimeoutBatch(queueUrl,
+                        inProcessMessages.stream().map(Message::receiptHandle).toList(), this.visibilityTimeout);
+            } catch (Exception e) {
+                logger.error("Failed to extend visibility timeout", e);
             }
+
             try {
                 Thread.sleep(this.threadSleepTime);
             } catch (InterruptedException e) {

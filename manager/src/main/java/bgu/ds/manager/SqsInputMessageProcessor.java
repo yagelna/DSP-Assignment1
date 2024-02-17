@@ -38,17 +38,17 @@ public class SqsInputMessageProcessor implements SqsMessageProcessor {
                     Manager.getInstance().addPendingReview(addInputMessage.getInputId(), review.getId());
                 }
 
-                for (Review review : productReview.getReviews()) {
-                    sqs.sendMessage(sqs.getQueueUrl(config.sqsWorkersInputQueueName()),
-                            new ReviewProcessMessage(review.getId(), review.getTitle(), review.getText()));
-                }
+//                for (Review review : productReview.getReviews()) {
+//                    sqs.sendMessage(sqs.getQueueUrl(config.sqsWorkersInputQueueName()),
+//                            new ReviewProcessMessage(review.getId(), review.getTitle(), review.getText()));
+//                }
 
                 // TODO: Send in batch
-//                sqs.sendBatchMessages(sqs.getQueueUrl(config.sqsWorkersInputQueueName()),
-//                        Arrays.stream(productReview.getReviews())
-//                                .map(review ->
-//                                        new ReviewProcessMessage(review.getId(), review.getTitle(), review.getText()))
-//                                .toList());
+                sqs.sendBatchMessages(sqs.getQueueUrl(config.sqsWorkersInputQueueName()),
+                        Arrays.stream(productReview.getReviews())
+                                .map(review ->
+                                        new ReviewProcessMessage(review.getId(), review.getTitle(), review.getText()))
+                                .toList());
             }
             tempFile.delete();
         } catch (IOException e) {
