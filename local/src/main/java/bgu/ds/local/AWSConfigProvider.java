@@ -1,4 +1,4 @@
-package bgu.ds.common;
+package bgu.ds.local;
 
 import org.cfg4j.provider.ConfigurationProvider;
 import org.cfg4j.provider.ConfigurationProviderBuilder;
@@ -11,17 +11,17 @@ import java.util.Arrays;
 
 public class AWSConfigProvider {
 
-    private static final AWSConfig awsConfig = build();
+    private static final LocalAWSConfig localAWSConfig = build();
 
-    private static AWSConfig build() {
+    private static LocalAWSConfig build() {
         ConfigFilesProvider configFilesProvider = () -> Arrays.asList(Paths.get("application.yaml"));
         ConfigurationSource source = new ClasspathConfigurationSource(configFilesProvider);
         ConfigurationProvider provider = new ConfigurationProviderBuilder().withConfigurationSource(source).build();
-        return provider.bind("aws", AWSConfig.class);
+        return provider.bind("aws", LocalAWSConfig.class);
     }
 
-    public static AWSConfig getConfig() {
-        return awsConfig;
+    public static LocalAWSConfig getConfig() {
+        return localAWSConfig;
     }
 
 }

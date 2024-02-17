@@ -1,22 +1,14 @@
 package bgu.ds.local;
 
-import bgu.ds.common.AWS;
-
 public class Main {
-    final static AWS aws = AWS.getInstance();
-    public static void main(String[] args) {// args = [inFilePath, outFilePath, tasksPerWorker, -t (terminate, optional)]
-        try {
-            setup();
-            aws.createInstance();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    public static void main(String[] args) {
+        // args = [inFilePath, outFilePath, tasksPerWorker, -t (terminate, optional)]
+        String[] inFilesPath = args[0].split(",");
+        String[] outFilesPath = args[1].split(",");
+        int tasksPerWorker = Integer.parseInt(args[2]);
+        boolean terminate = args.length > 3 && args[3].equals("-t");
 
-    }
-
-    //Create Buckets, Create Queues, Upload JARs to S3
-    private static void setup() {
-        System.out.println("[DEBUG] Create bucket if not exist.");
-        aws.createBucketIfNotExists(aws.bucketName);
+        LocalApp localApp = LocalApp.getInstance();
+        localApp.start(inFilesPath, outFilesPath, tasksPerWorker, terminate);
     }
 }
