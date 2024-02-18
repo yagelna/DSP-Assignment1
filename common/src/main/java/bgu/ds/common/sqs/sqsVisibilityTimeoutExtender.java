@@ -40,7 +40,8 @@ public class sqsVisibilityTimeoutExtender extends Thread{
                 sqs.extendVisibilityTimeoutBatch(queueUrl,
                         inProcessMessages.stream().map(Message::receiptHandle).toList(), this.visibilityTimeout);
             } catch (Exception e) {
-                logger.error("Failed to extend visibility timeout", e);
+                logger.warn("Failed to extend visibility timeout: {}", e.getMessage());
+                logger.debug("Failed to extend visibility timeout", e);
             }
 
             try {
@@ -53,6 +54,5 @@ public class sqsVisibilityTimeoutExtender extends Thread{
 
     public void shutdown() {
         terminate = true;
-        this.interrupt();
     }
 }

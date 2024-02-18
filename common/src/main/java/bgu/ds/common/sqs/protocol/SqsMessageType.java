@@ -16,7 +16,10 @@ public enum SqsMessageType {
     REVIEW_PROCESS(3, ReviewProcessMessage.class),
 
     @SerializedName("4")
-    REVIEW_COMPLETE(4, ReviewCompleteMessage.class);
+    REVIEW_COMPLETE(4, ReviewCompleteMessage.class),
+
+    @SerializedName("5")
+    TERMINATE_MANAGER(5, TerminateManagerMessage.class);
 
     private final int value;
     private final transient Class<? extends SqsMessage> messageClass;

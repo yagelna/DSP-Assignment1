@@ -1,7 +1,13 @@
 aws:
+  managerName: "Manager"
+  bucketName: "assignment1-reviews"
   sqsTasksInputQueueName: "TasksInputQueue"
+  sqsOutputQueueName: "TasksOutputQueue"
   sqsWorkersInputQueueName: "WorkersInputQueue"
   sqsWorkersOutputQueueName: "WorkersOutputQueue"
+  minWorkersCount: 3
+  maxWorkersCount: 5
+  workersHandlerThreadSleepTime: 30
   ec2Name: "Worker"
   instanceType: "t2.micro"
   ami: "ami-0f4341ad9e6987bd5"

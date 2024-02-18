@@ -1,0 +1,8 @@
+aws:
+  sqsWorkersInputQueueName: "WorkersInputQueue"
+  sqsWorkersOutputQueueName: "WorkersOutputQueue"
+  entityTypes:
+    - PERSON
+    - LOCATION
+    - ORGANIZATION
+  sarcasmThreshold: 2

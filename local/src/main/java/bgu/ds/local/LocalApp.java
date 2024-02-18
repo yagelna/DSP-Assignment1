@@ -7,6 +7,7 @@ import bgu.ds.common.sqs.SqsMessageConsumer;
 import bgu.ds.common.sqs.protocol.AddInputMessage;
 import bgu.ds.common.sqs.protocol.SetWorkersCountMessage;
 import bgu.ds.common.sqs.protocol.SqsMessageType;
+import bgu.ds.common.sqs.protocol.TerminateManagerMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,15 +27,11 @@ public class LocalApp {
 
     private static final LocalApp instance = new LocalApp();
 
-    private final SqsMessageConsumer consumer;
+    private SqsMessageConsumer consumer;
     private final Map<UUID, String> inputUUIDToOutputPath = new ConcurrentHashMap<>();
     private AtomicInteger inputFilesCount;
 
-    private LocalApp() {
-        setup();
-        this.consumer = new SqsMessageConsumer(config.sqsOutputQueueName(), 5, 30, 10);
-        this.consumer.registerProcessor(SqsMessageType.SEND_OUTPUT, new SqsOutputMessageProcessor());
-    }
+    private LocalApp() {}
 
     public static LocalApp getInstance() {
         return instance;
@@ -62,6 +59,7 @@ public class LocalApp {
         }
 
         try {
+            logger.info("Writing object {} from bucket {} to path {}", objectKey, bucketName, filePath);
             s3.getObject(objectKey, bucketName, new File(filePath));
         } catch (IOException e) {
             logger.error("Failed to write object {} from bucket {} to path {}", objectKey, bucketName, filePath, e);
@@ -73,6 +71,8 @@ public class LocalApp {
     }
 
     public void start(String[] inFilesPath, String[] outFilesPath, int tasksPerWorker, boolean terminate) {
+        setup();
+
         // Send a message to the Manager to set the number of workers
         String inputQueueUrl = sqs.getQueueUrl(config.sqsInputQueueName());
         sqs.sendMessage(inputQueueUrl, new SetWorkersCountMessage(tasksPerWorker));
@@ -81,6 +81,8 @@ public class LocalApp {
         inputFilesCount = new AtomicInteger(inFilesPath.length);
 
         // Start the consumer
+        this.consumer = new SqsMessageConsumer(config.sqsOutputQueueName(), 5, 30, 10);
+        consumer.registerProcessor(SqsMessageType.SEND_OUTPUT, new SqsOutputMessageProcessor());
         consumer.start();
 
         // Send the input files to the Manager
@@ -95,12 +97,12 @@ public class LocalApp {
         try {
             consumer.join();
         } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            logger.info("LocalApp was interrupted while waiting for consumer thread", e);
         }
 
         if (terminate) {
             logger.info("Terminating Manager instance");
-            ec2.terminateInstances(config.ec2Name());
+            sqs.sendMessage(inputQueueUrl, new TerminateManagerMessage());
         }
     }
 }

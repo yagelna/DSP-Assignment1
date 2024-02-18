@@ -1,19 +1,16 @@
 package bgu.ds.worker;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-import edu.stanford.nlp.ling.CoreAnnotations;
 import edu.stanford.nlp.ling.CoreAnnotations.NamedEntityTagAnnotation;
 import edu.stanford.nlp.ling.CoreAnnotations.SentencesAnnotation;
 import edu.stanford.nlp.ling.CoreAnnotations.TextAnnotation;
 import edu.stanford.nlp.ling.CoreAnnotations.TokensAnnotation;
 import edu.stanford.nlp.ling.CoreLabel;
-import edu.stanford.nlp.neural.rnn.RNNCoreAnnotations;
 import edu.stanford.nlp.pipeline.Annotation;
 import edu.stanford.nlp.pipeline.StanfordCoreNLP;
-import edu.stanford.nlp.sentiment.SentimentCoreAnnotations;
-import edu.stanford.nlp.trees.Tree;
 import edu.stanford.nlp.util.CoreMap;
 
 public class NamedEntityRecognitionHandler {
@@ -26,7 +23,8 @@ public class NamedEntityRecognitionHandler {
         this.NERPipeline = new StanfordCoreNLP(props);
     }
 
-    public void printEntities(String review) {
+    public List<String> getEntities(String review, List<String> entityTypes) {
+        List<String> namedEntities = new ArrayList<>();
         // create an empty Annotation just with the given text
         Annotation document = new Annotation(review);
         // run all Annotators on this text
@@ -43,9 +41,12 @@ public class NamedEntityRecognitionHandler {
                 String word = token.get(TextAnnotation.class);
                 // this is the NER label of the token
                 String ne = token.get(NamedEntityTagAnnotation.class);
-                System.out.println("\t-" + word + ":" + ne);
+                if (entityTypes.contains(ne)) {
+                    namedEntities.add(String.format("%s:%s", word, ne));
+                }
             }
         }
+        return namedEntities;
     }
 
 }

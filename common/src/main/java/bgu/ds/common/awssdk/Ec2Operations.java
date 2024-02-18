@@ -44,14 +44,8 @@ public class Ec2Operations {
                 .resources(instanceId)
                 .tags(tag)
                 .build();
-        try {
-            ec2Client.createTags(tagRequest);
-            System.out.printf(
-                    "Successfully started EC2 instance %s based on AMI %s",
-                    instanceId, ami);
-        } catch (Ec2Exception e) {
-            System.err.println(e.getMessage());
-        }
+
+        ec2Client.createTags(tagRequest);
     }
 
     public boolean isInstanceRunning(String name) {
@@ -65,7 +59,7 @@ public class Ec2Operations {
                         instance.state().name().equals(InstanceStateName.PENDING));
     }
 
-    public boolean terminateInstances(String name) {
+    public boolean terminateAllInstances(String name) {
         DescribeInstancesRequest request = DescribeInstancesRequest.builder()
             .filters(Filter.builder().name("tag:Name").values(name).build())
             .build();
@@ -81,6 +75,27 @@ public class Ec2Operations {
         }
         TerminateInstancesRequest terminateRequest = TerminateInstancesRequest.builder()
                 .instanceIds(instanceIds)
+                .build();
+        ec2Client.terminateInstances(terminateRequest);
+        return true;
+    }
+
+    public boolean terminateInstance(String name) {
+        DescribeInstancesRequest request = DescribeInstancesRequest.builder()
+                .filters(Filter.builder().name("tag:Name").values(name).build())
+                .build();
+        DescribeInstancesResponse response = ec2Client.describeInstances(request);
+        String instanceId = response.reservations().stream()
+                .flatMap(reservation -> reservation.instances().stream())
+                .filter(instance -> instance.state().name().equals(InstanceStateName.RUNNING) ||
+                        instance.state().name().equals(InstanceStateName.PENDING))
+                .map(Instance::instanceId)
+                .findFirst().orElse(null);
+        if (instanceId == null) {
+            return false;
+        }
+        TerminateInstancesRequest terminateRequest = TerminateInstancesRequest.builder()
+                .instanceIds(instanceId)
                 .build();
         ec2Client.terminateInstances(terminateRequest);
         return true;
