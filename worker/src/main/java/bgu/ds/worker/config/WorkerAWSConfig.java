@@ -7,7 +7,7 @@ public interface WorkerAWSConfig {
     String sqsWorkersOutputQueueName();
     List<String> entityTypes();
     int sarcasmThreshold();
-    int processorThreads();
+    int processingThreads();
     int consumerVisibilityTimeout();
     int consumerVisibilityThreadSleepTime();
     int consumerMaxMessagesPerPoll();

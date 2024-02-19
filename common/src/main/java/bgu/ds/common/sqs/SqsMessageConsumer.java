@@ -73,19 +73,25 @@ public class SqsMessageConsumer extends Thread {
                 SqsMessageProcessor processor = processors.get(sqsMessage.getMessageType());
                 if (processor != null) {
                     visibilityTimeoutExtender.addMessage(message);
-                    executorService.execute(() -> {
-                        try {
-                            logger.info("Starting processing message: {}", sqsMessage);
-                            processor.process(sqsMessage);
-                            logger.info("Finished processing message successfully: " + sqsMessage);
-                            sqs.deleteMessage(queueUrl, message.receiptHandle());
-                        } catch (Exception e) {
-                            logger.error("Failed to process message: " + sqsMessage, e);
-                        } finally {
-                            visibilityTimeoutExtender.removeMessage(message);
-                            semaphore.release();
-                        }
-                    });
+                    try {
+                        executorService.execute(() -> {
+                            try {
+                                logger.info("Starting processing message: {}", sqsMessage);
+                                processor.process(sqsMessage);
+                                logger.info("Finished processing message successfully: " + sqsMessage);
+                                sqs.deleteMessage(queueUrl, message.receiptHandle());
+                            } catch (Exception e) {
+                                logger.error("Failed to process message: " + sqsMessage, e);
+                            } finally {
+                                visibilityTimeoutExtender.removeMessage(message);
+                                semaphore.release();
+                            }
+                        });
+                    } catch (RejectedExecutionException e) {
+                        logger.error("Failed to submit message to executor", e);
+                        visibilityTimeoutExtender.removeMessage(message);
+                        semaphore.release();
+                    }
                 }
             }
         }

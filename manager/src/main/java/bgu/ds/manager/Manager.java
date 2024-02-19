@@ -48,6 +48,7 @@ public class Manager {
     private final Map<UUID, Map<String, ReviewResult>> completedReviews = new ConcurrentHashMap<>();
     private final Map<UUID, AtomicInteger> reviewsCounter = new ConcurrentHashMap<>();
     private final Map<UUID, String> inputUUIDToOutputQueueName = new ConcurrentHashMap<>();
+    private volatile boolean terminate = false;
 
     private Manager() {
     }
@@ -137,6 +138,11 @@ public class Manager {
         } catch (IOException e) {
             logger.error("Failed to write output file", e);
         }
+
+        // If there are no more pending reviews and the manager is set to terminate, terminate.
+        if (pendingReviews.isEmpty() && terminate) {
+            terminate();
+        }
     }
 
     private String createHtmlContent(UUID inputId) {
@@ -166,8 +172,18 @@ public class Manager {
 
     public void shutdown() {
         logger.info("Shutting down manager");
+        // If the manager is not set to terminate, set it to terminate and wait for all pending reviews to complete.
+        // Shutdown input consumer to stop receiving new reviews.
         if (inputConsumer != null)
             inputConsumer.shutdown();
+        terminate = true;
+        // If there are no pending reviews, terminate immediately.
+        if (pendingReviews.isEmpty()) {
+            terminate();
+        }
+    }
+
+    private void terminate() {
         if (outputConsumer != null)
             outputConsumer.shutdown();
         if (workersHandler != null)
