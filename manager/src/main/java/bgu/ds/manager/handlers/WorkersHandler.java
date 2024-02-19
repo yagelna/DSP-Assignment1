@@ -34,7 +34,7 @@ public class WorkersHandler extends Thread {
         if (value < maxWorkers) {
             try {
                 ec2.createInstance(config.ec2Name(), config.instanceType(), config.ami(), config.instanceProfileName(),
-                        config.securityGroupId(), config.userDataCommands());
+                        config.securityGroupName(), config.userDataCommands());
             } catch (Exception e) {
                 logger.warn("Failed to create worker instance {}", e.getMessage());
                 workersCount.getAndDecrement();

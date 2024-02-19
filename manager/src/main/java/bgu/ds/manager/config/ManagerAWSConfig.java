@@ -11,10 +11,13 @@ public interface ManagerAWSConfig {
     int minWorkersCount();
     int maxWorkersCount();
     int workersHandlerThreadSleepTime();
+    int consumerThreads();
+    int consumerVisibilityTimeout();
+    int consumerVisibilityThreadSleepTime();
     String ec2Name();
     String instanceType();
     String ami();
     String instanceProfileName();
-    String securityGroupId();
+    String securityGroupName();
     List<String> userDataCommands();
 }

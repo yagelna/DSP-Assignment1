@@ -6,3 +6,8 @@ aws:
     - LOCATION
     - ORGANIZATION
   sarcasmThreshold: 2
+  processingThreads: 2
+  consumerVisibilityTimeout: 30
+  consumerVisibilityThreadSleepTime: 10
+  consumerMaxMessagesPerPoll: 5
+  consumerMaxMessagesInFlight: 10

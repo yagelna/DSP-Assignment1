@@ -12,7 +12,6 @@ public class SqsTerminateManagerMessageProcessor implements SqsMessageProcessor 
         if (message.getMessageType() != SqsMessageType.TERMINATE_MANAGER) {
             throw new IllegalArgumentException("Invalid message type: " + message.getMessageType());
         }
-
         manager.shutdown();
     }
 }

@@ -88,7 +88,7 @@ public class Manager {
         tempFile.delete();
     }
 
-    public void addPendingReview(UUID inputId, String reviewId) {
+    private void addPendingReview(UUID inputId, String reviewId) {
         if (pendingReviews.putIfAbsent(reviewId, inputId) == null) {
             logger.debug("Review {} is pending", reviewId);
             if (reviewsCounter.putIfAbsent(inputId, new AtomicInteger(1)) != null) {
@@ -189,14 +189,16 @@ public class Manager {
         workersHandler.start();
 
         String inputQueueUrl = sqs.getQueueUrl(config.sqsTasksInputQueueName());
-        this.inputConsumer = new SqsMessageConsumer(inputQueueUrl, 5, 30, 10);
+        this.inputConsumer = new SqsMessageConsumer(inputQueueUrl, config.consumerThreads(),
+                config.consumerVisibilityTimeout(), config.consumerVisibilityThreadSleepTime());
         inputConsumer.registerProcessor(SqsMessageType.ADD_INPUT, new SqsInputMessageProcessor());
         inputConsumer.registerProcessor(SqsMessageType.SET_WORKERS_COUNT, new SqsSetWorkersCountMessageProcessor());
         inputConsumer.registerProcessor(SqsMessageType.TERMINATE_MANAGER, new SqsTerminateManagerMessageProcessor());
         inputConsumer.start();
 
         String outputQueueUrl = sqs.getQueueUrl(config.sqsWorkersOutputQueueName());
-        this.outputConsumer = new SqsMessageConsumer(outputQueueUrl, 5, 30, 10);
+        this.outputConsumer = new SqsMessageConsumer(outputQueueUrl, config.consumerThreads(),
+                config.consumerVisibilityTimeout(), config.consumerVisibilityThreadSleepTime());
         outputConsumer.registerProcessor(SqsMessageType.REVIEW_COMPLETE, new SqsReviewCompleteMessageProcessor());
         outputConsumer.start();
 

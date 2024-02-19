@@ -43,12 +43,11 @@ public class LocalApp {
     private void setup() {
         if (!ec2.isInstanceRunning(config.ec2Name())) {
             ec2.createInstance(config.ec2Name(), config.instanceType(), config.ami(), config.instanceProfileName(),
-                    config.securityGroupId(), config.userDataCommands());
+                    config.securityGroupName(), config.userDataCommands());
         } else {
-            System.out.println("[DEBUG] Instance is already running.");
+            logger.info("Instance {} is already running", config.ec2Name());
         }
 
-        System.out.println("[DEBUG] Create bucket if not exist.");
         s3.createBucketIfNotExists(config.bucketName());
         sqs.createQueueIfNotExists(config.sqsInputQueueName());
     }
@@ -86,7 +85,8 @@ public class LocalApp {
         sqs.createQueueIfNotExists(outputQueueName);
 
         // Start the consumer
-        this.consumer = new SqsMessageConsumer(sqs.getQueueUrl(outputQueueName), 5, 30, 10);
+        this.consumer = new SqsMessageConsumer(sqs.getQueueUrl(outputQueueName), config.consumerThreads(),
+                config.consumerVisibilityTimeout(), config.consumerVisibilityThreadSleepTime());
         consumer.registerProcessor(SqsMessageType.SEND_OUTPUT, new SqsOutputMessageProcessor());
         consumer.start();
 

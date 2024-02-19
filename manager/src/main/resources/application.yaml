@@ -7,11 +7,14 @@ aws:
   minWorkersCount: 3
   maxWorkersCount: 8
   workersHandlerThreadSleepTime: 30
+  consumerThreads: 5
+  consumerVisibilityTimeout: 30
+  consumerVisibilityThreadSleepTime: 10
   ec2Name: "Worker"
   instanceType: "t4g.large"
   ami: "ami-0e4b9fe67ab21f3a7"
   instanceProfileName: "LabInstanceProfile"
-  securityGroupId: "sg-0581a91dd11baf603"
+  securityGroupName: "default"
   userDataCommands:
     - "#!/bin/bash"
     - "exec >> /tmp/log"

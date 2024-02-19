@@ -23,7 +23,7 @@ public class Ec2Operations {
     }
 
     public void createInstance(String name, String instanceType, String ami, String instanceProfileName,
-                               String securityGroupId, List<String> userDataCommands) {
+                               String securityGroupName, List<String> userDataCommands) {
         RunInstancesRequest runRequest = RunInstancesRequest.builder()
                 .instanceType(InstanceType.fromValue(instanceType))
                 .imageId(ami)
@@ -31,7 +31,7 @@ public class Ec2Operations {
                 .minCount(1)
                 .userData(getEC2userData(userDataCommands))
                 .iamInstanceProfile(IamInstanceProfileSpecification.builder().name(instanceProfileName).build())
-                .securityGroupIds(securityGroupId)
+                .securityGroups(securityGroupName)
                 .build();
         RunInstancesResponse response = ec2Client.runInstances(runRequest);
         String instanceId = response.instances().get(0).instanceId();

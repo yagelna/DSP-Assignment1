@@ -6,10 +6,13 @@ public interface LocalAWSConfig {
     String bucketName();
     String sqsInputQueueName();
     String sqsOutputQueuePrefix();
+    int consumerThreads();
+    int consumerVisibilityTimeout();
+    int consumerVisibilityThreadSleepTime();
     String ec2Name();
     String instanceType();
     String ami();
     String instanceProfileName();
-    String securityGroupId();
+    String securityGroupName();
     List<String> userDataCommands();
 }

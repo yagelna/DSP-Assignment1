@@ -2,11 +2,14 @@ aws:
   bucketName: "assignment1-reviews"
   sqsInputQueueName: "TasksInputQueue"
   sqsOutputQueuePrefix: "TasksOutputQueue"
+  consumerThreads: 5
+  consumerVisibilityTimeout: 30
+  consumerVisibilityThreadSleepTime: 10
   ec2Name: "Manager"
   instanceType: "t4g.medium"
   ami: "ami-0e4b9fe67ab21f3a7"
   instanceProfileName: "LabInstanceProfile"
-  securityGroupId: "sg-0581a91dd11baf603"
+  securityGroupName: "default"
   userDataCommands:
     - "#!/bin/bash"
     - "exec >> /tmp/log"
