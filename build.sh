@@ -29,7 +29,7 @@ fi
 
 # Build Docker image
 echo "Building Docker image '$IMAGE_NAME'..."
-if ! docker buildx build --platform linux/amd64 -t "$IMAGE_NAME" .; then
+if ! docker buildx build --platform linux/arm64 -t "$IMAGE_NAME" .; then
     echo "Failed to build Docker image '$IMAGE_NAME'. Aborting."
     exit 1
 else

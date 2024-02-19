@@ -1,4 +1,4 @@
-package bgu.ds.worker;
+package bgu.ds.worker.handlers;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +19,7 @@ public class NamedEntityRecognitionHandler {
 
     public NamedEntityRecognitionHandler() {
         Properties props = new Properties();
-        props.put("annotators", "tokenize , ssplit, pos, lemma, ner");
+        props.put("annotators", "tokenize, ssplit, pos, lemma, ner");
         this.NERPipeline = new StanfordCoreNLP(props);
     }
 

@@ -40,6 +40,18 @@ public class SqsOperations {
         }
     }
 
+    public boolean deleteQueueIfExists(String QueueName) {
+        try {
+            DeleteQueueRequest request = DeleteQueueRequest.builder()
+                    .queueUrl(getQueueUrl(QueueName))
+                    .build();
+            sqsClient.deleteQueue(request);
+            return true;
+        } catch (QueueDoesNotExistException e) {
+            return false;
+        }
+    }
+
     public String getQueueUrl(String QueueName) {
         GetQueueUrlRequest getQueueRequest = GetQueueUrlRequest.builder()
                 .queueName(QueueName)
@@ -70,10 +82,11 @@ public class SqsOperations {
         });
     }
 
-    public List<Message> receiveMessage(String queueUrl, int visibilityTimeout) {
+    public List<Message> receiveMessages(String queueUrl, int visibilityTimeout, int maxNumberOfMessages) {
         ReceiveMessageRequest receiveRequest = ReceiveMessageRequest.builder()
                 .queueUrl(queueUrl)
                 .visibilityTimeout(visibilityTimeout)
+                .maxNumberOfMessages(maxNumberOfMessages)
                 .build();
         return sqsClient.receiveMessage(receiveRequest).messages();
     }

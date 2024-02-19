@@ -1,4 +1,4 @@
-package bgu.ds.worker;
+package bgu.ds.worker.config;
 
 import java.util.List;
 

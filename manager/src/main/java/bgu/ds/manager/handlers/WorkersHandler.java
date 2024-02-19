@@ -1,6 +1,9 @@
-package bgu.ds.manager;
+package bgu.ds.manager.handlers;
 
 import bgu.ds.common.awssdk.Ec2Operations;
+import bgu.ds.manager.Manager;
+import bgu.ds.manager.config.AWSConfigProvider;
+import bgu.ds.manager.config.ManagerAWSConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,7 +20,7 @@ public class WorkersHandler extends Thread {
     private final int maxWorkers;
     private final int threadSleepTime;
     private AtomicInteger workersCount = new AtomicInteger(0);
-    private AtomicInteger tasksPerWorker = new AtomicInteger(0);
+    private AtomicInteger tasksPerWorker = new AtomicInteger(1);
 
 
     public WorkersHandler(int minWorkers, int maxWorkers, int threadSleepTime) {

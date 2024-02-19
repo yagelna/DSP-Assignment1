@@ -2,15 +2,14 @@ aws:
   managerName: "Manager"
   bucketName: "assignment1-reviews"
   sqsTasksInputQueueName: "TasksInputQueue"
-  sqsOutputQueueName: "TasksOutputQueue"
   sqsWorkersInputQueueName: "WorkersInputQueue"
   sqsWorkersOutputQueueName: "WorkersOutputQueue"
   minWorkersCount: 3
-  maxWorkersCount: 5
+  maxWorkersCount: 8
   workersHandlerThreadSleepTime: 30
   ec2Name: "Worker"
-  instanceType: "t2.micro"
-  ami: "ami-0f4341ad9e6987bd5"
+  instanceType: "t4g.large"
+  ami: "ami-0e4b9fe67ab21f3a7"
   instanceProfileName: "LabInstanceProfile"
   securityGroupId: "sg-0581a91dd11baf603"
   userDataCommands:
@@ -20,6 +19,7 @@ aws:
     - "AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)"
     - "AWS_REGION=us-east-1"
     - "MODE=WORKER"
+    - "systemctl start docker"
     - "aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com"
     - "docker pull $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/assignments:latest"
-    - "docker run -d -e MODE=$MODE $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/assignments:latest"
+    - "docker run --net host -d -e MODE=$MODE $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/assignments:latest"

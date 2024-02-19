@@ -1,8 +1,12 @@
-package bgu.ds.worker;
+package bgu.ds.worker.processors;
 
 import bgu.ds.common.awssdk.SqsOperations;
 import bgu.ds.common.sqs.SqsMessageProcessor;
 import bgu.ds.common.sqs.protocol.*;
+import bgu.ds.worker.config.AWSConfigProvider;
+import bgu.ds.worker.config.WorkerAWSConfig;
+import bgu.ds.worker.handlers.NamedEntityRecognitionHandler;
+import bgu.ds.worker.handlers.SentimentAnalysisHandler;
 
 import java.util.List;
 

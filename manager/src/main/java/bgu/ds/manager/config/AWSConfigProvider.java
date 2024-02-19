@@ -1,4 +1,4 @@
-package bgu.ds.manager;
+package bgu.ds.manager.config;
 
 import org.cfg4j.provider.ConfigurationProvider;
 import org.cfg4j.provider.ConfigurationProviderBuilder;

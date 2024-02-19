@@ -1,10 +1,10 @@
 aws:
   bucketName: "assignment1-reviews"
   sqsInputQueueName: "TasksInputQueue"
-  sqsOutputQueueName: "TasksOutputQueue"
+  sqsOutputQueuePrefix: "TasksOutputQueue"
   ec2Name: "Manager"
-  instanceType: "t2.micro"
-  ami: "ami-0f4341ad9e6987bd5"
+  instanceType: "t4g.medium"
+  ami: "ami-0e4b9fe67ab21f3a7"
   instanceProfileName: "LabInstanceProfile"
   securityGroupId: "sg-0581a91dd11baf603"
   userDataCommands:
@@ -14,6 +14,7 @@ aws:
     - "AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)"
     - "AWS_REGION=us-east-1"
     - "MODE=MANAGER"
+    - "systemctl start docker"
     - "aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com"
     - "docker pull $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/assignments:latest"
-    - "docker run -d -e MODE=$MODE $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/assignments:latest"
+    - "docker run --net host -d -e MODE=$MODE $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/assignments:latest"

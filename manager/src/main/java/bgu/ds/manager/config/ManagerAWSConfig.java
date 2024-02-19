@@ -1,11 +1,10 @@
-package bgu.ds.manager;
+package bgu.ds.manager.config;
 
 import java.util.List;
 
 public interface ManagerAWSConfig {
     String managerName();
     String bucketName();
-    String sqsOutputQueueName();
     String sqsTasksInputQueueName();
     String sqsWorkersInputQueueName();
     String sqsWorkersOutputQueueName();

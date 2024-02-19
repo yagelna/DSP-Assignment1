@@ -1,4 +1,4 @@
-package bgu.ds.local;
+package bgu.ds.local.config;
 
 import org.cfg4j.provider.ConfigurationProvider;
 import org.cfg4j.provider.ConfigurationProviderBuilder;

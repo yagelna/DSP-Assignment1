@@ -2,17 +2,31 @@ package bgu.ds.manager;
 
 import bgu.ds.common.awssdk.Ec2Operations;
 import bgu.ds.common.awssdk.S3ObjectOperations;
+import bgu.ds.common.sqs.protocol.ReviewProcessMessage;
 import bgu.ds.common.sqs.protocol.ReviewResult;
 import bgu.ds.common.sqs.protocol.SendOutputMessage;
 import bgu.ds.common.sqs.protocol.SqsMessageType;
 import bgu.ds.common.awssdk.SqsOperations;
 import bgu.ds.common.sqs.SqsMessageConsumer;
+import bgu.ds.manager.config.AWSConfigProvider;
+import bgu.ds.manager.config.ManagerAWSConfig;
+import bgu.ds.manager.handlers.WorkersHandler;
+import bgu.ds.manager.models.ProductReview;
+import bgu.ds.manager.models.Review;
+import bgu.ds.manager.processors.SqsInputMessageProcessor;
+import bgu.ds.manager.processors.SqsReviewCompleteMessageProcessor;
+import bgu.ds.manager.processors.SqsSetWorkersCountMessageProcessor;
+import bgu.ds.manager.processors.SqsTerminateManagerMessageProcessor;
+import com.google.gson.Gson;
+import com.google.gson.JsonStreamParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -33,6 +47,7 @@ public class Manager {
     private final Map<String, UUID> pendingReviews = new ConcurrentHashMap<>();
     private final Map<UUID, Map<String, ReviewResult>> completedReviews = new ConcurrentHashMap<>();
     private final Map<UUID, AtomicInteger> reviewsCounter = new ConcurrentHashMap<>();
+    private final Map<UUID, String> inputUUIDToOutputQueueName = new ConcurrentHashMap<>();
 
     private Manager() {
     }
@@ -47,6 +62,30 @@ public class Manager {
             return true;
         }
         return false;
+    }
+
+    public void addInputFile(UUID inputId, String inputBucketName, String objectKey, String outputQueueName)
+            throws IOException {
+        File tempFile = s3.getObject(inputBucketName, objectKey);
+        inputUUIDToOutputQueueName.put(inputId, outputQueueName);
+        Gson gson = new Gson();
+        JsonStreamParser parser = new JsonStreamParser(new FileReader(tempFile));
+        while (parser.hasNext()) {
+            ProductReview productReview = gson.fromJson(parser.next(), ProductReview.class);
+            // We first want to add the reviews to the pending reviews map,
+            // and only then send the reviews to the workers.
+            for (Review review : productReview.getReviews()) {
+                addPendingReview(inputId, review.getId());
+            }
+
+            sqs.sendBatchMessages(sqs.getQueueUrl(config.sqsWorkersInputQueueName()),
+                    Arrays.stream(productReview.getReviews())
+                            .map(review ->
+                                    new ReviewProcessMessage(review.getId(), review.getLink(), review.getTitle(),
+                                            review.getText(), review.getRating()))
+                            .toList());
+        }
+        tempFile.delete();
     }
 
     public void addPendingReview(UUID inputId, String reviewId) {
@@ -93,7 +132,7 @@ public class Manager {
             fileWriter.close();
 
             String objectKey = s3.putObject(tempFile.getAbsolutePath(), config.bucketName());
-            sqs.sendMessage(config.sqsOutputQueueName(), new SendOutputMessage(inputId, config.bucketName(),
+            sqs.sendMessage(inputUUIDToOutputQueueName.remove(inputId), new SendOutputMessage(inputId, config.bucketName(),
                     objectKey));
         } catch (IOException e) {
             logger.error("Failed to write output file", e);
@@ -136,7 +175,7 @@ public class Manager {
     }
 
     private void setup() {
-        sqs.createQueueIfNotExists(config.sqsOutputQueueName());
+        s3.createBucketIfNotExists(config.bucketName());
         sqs.createQueueIfNotExists(config.sqsTasksInputQueueName());
         sqs.createQueueIfNotExists(config.sqsWorkersInputQueueName());
         sqs.createQueueIfNotExists(config.sqsWorkersOutputQueueName());

@@ -8,6 +8,9 @@ import bgu.ds.common.sqs.protocol.AddInputMessage;
 import bgu.ds.common.sqs.protocol.SetWorkersCountMessage;
 import bgu.ds.common.sqs.protocol.SqsMessageType;
 import bgu.ds.common.sqs.protocol.TerminateManagerMessage;
+import bgu.ds.local.config.AWSConfigProvider;
+import bgu.ds.local.config.LocalAWSConfig;
+import bgu.ds.local.processors.SqsOutputMessageProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,14 +51,12 @@ public class LocalApp {
         System.out.println("[DEBUG] Create bucket if not exist.");
         s3.createBucketIfNotExists(config.bucketName());
         sqs.createQueueIfNotExists(config.sqsInputQueueName());
-        sqs.createQueueIfNotExists(config.sqsOutputQueueName());
     }
 
     public void addOutputFile(UUID inputId, String bucketName, String objectKey) {
         String filePath = inputUUIDToOutputPath.remove(inputId);
         if (filePath == null) {
             logger.warn("Input id {} is not found", inputId);
-            return;
         }
 
         try {
@@ -80,17 +81,21 @@ public class LocalApp {
         // Set the input files count
         inputFilesCount = new AtomicInteger(inFilesPath.length);
 
+        // Create a queue for the output
+        String outputQueueName = config.sqsOutputQueuePrefix() + "-" + UUID.randomUUID();
+        sqs.createQueueIfNotExists(outputQueueName);
+
         // Start the consumer
-        this.consumer = new SqsMessageConsumer(config.sqsOutputQueueName(), 5, 30, 10);
+        this.consumer = new SqsMessageConsumer(sqs.getQueueUrl(outputQueueName), 5, 30, 10);
         consumer.registerProcessor(SqsMessageType.SEND_OUTPUT, new SqsOutputMessageProcessor());
         consumer.start();
 
         // Send the input files to the Manager
-        for (int i =0; i < inFilesPath.length; i++) {
+        for (int i=0; i < inFilesPath.length; i++) {
             String objectKey = s3.putObject(inFilesPath[i], config.bucketName());
             UUID uuid = UUID.randomUUID();
             inputUUIDToOutputPath.put(uuid, outFilesPath[i]);
-            sqs.sendMessage(inputQueueUrl, new AddInputMessage(uuid, config.bucketName(), objectKey));
+            sqs.sendMessage(inputQueueUrl, new AddInputMessage(uuid, config.bucketName(), objectKey, outputQueueName));
         }
 
         // Wait for all the input files to be processed
@@ -99,6 +104,8 @@ public class LocalApp {
         } catch (InterruptedException e) {
             logger.info("LocalApp was interrupted while waiting for consumer thread", e);
         }
+
+        sqs.deleteQueueIfExists(outputQueueName);
 
         if (terminate) {
             logger.info("Terminating Manager instance");

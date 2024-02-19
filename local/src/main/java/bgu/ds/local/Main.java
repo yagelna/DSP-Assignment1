@@ -8,6 +8,11 @@ public class Main {
         int tasksPerWorker = Integer.parseInt(args[2]);
         boolean terminate = args.length > 3 && args[3].equals("-t");
 
+        if (inFilesPath.length != outFilesPath.length) {
+            System.err.println("Number of input files must be equal to the number of output files");
+            System.exit(1);
+        }
+
         LocalApp localApp = LocalApp.getInstance();
         localApp.start(inFilesPath, outFilesPath, tasksPerWorker, terminate);
     }

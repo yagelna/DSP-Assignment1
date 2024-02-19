@@ -1,11 +1,11 @@
-package bgu.ds.local;
+package bgu.ds.local.config;
 
 import java.util.List;
 
 public interface LocalAWSConfig {
     String bucketName();
     String sqsInputQueueName();
-    String sqsOutputQueueName();
+    String sqsOutputQueuePrefix();
     String ec2Name();
     String instanceType();
     String ami();

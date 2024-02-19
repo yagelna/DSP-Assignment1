@@ -1,4 +1,4 @@
-package bgu.ds.manager;
+package bgu.ds.manager.models;
 
 import java.util.Date;
 

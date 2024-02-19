@@ -1,8 +1,9 @@
-package bgu.ds.manager;
+package bgu.ds.manager.processors;
 
 import bgu.ds.common.sqs.SqsMessageProcessor;
 import bgu.ds.common.sqs.protocol.SqsMessage;
 import bgu.ds.common.sqs.protocol.SqsMessageType;
+import bgu.ds.manager.Manager;
 
 public class SqsTerminateManagerMessageProcessor implements SqsMessageProcessor {
     private final static Manager manager = Manager.getInstance();

@@ -1,9 +1,10 @@
-package bgu.ds.local;
+package bgu.ds.local.processors;
 
 import bgu.ds.common.sqs.SqsMessageProcessor;
 import bgu.ds.common.sqs.protocol.SendOutputMessage;
 import bgu.ds.common.sqs.protocol.SqsMessage;
 import bgu.ds.common.sqs.protocol.SqsMessageType;
+import bgu.ds.local.LocalApp;
 
 public class SqsOutputMessageProcessor implements SqsMessageProcessor {
     @Override
