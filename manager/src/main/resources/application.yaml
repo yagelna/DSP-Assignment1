@@ -7,8 +7,8 @@ aws:
   workersKeepAliveQueueName: "WorkersKeepAliveQueue"
   minWorkersCount: 3
   maxWorkersCount: 8
-  workersKeepAliveTimeoutSeconds: 60
-  workersBootGracefulTime: 300
+  workersKeepAliveTimeoutSeconds: 90
+  workersBootGracefulTime: 60*7
   workersReduceThreshold: 1
   workersHandlerThreadSleepTime: 30
   consumerThreads: 5

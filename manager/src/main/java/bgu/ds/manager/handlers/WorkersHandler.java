@@ -102,7 +102,7 @@ public class WorkersHandler extends Thread {
         Date now = new Date();
         List<String> toTerminate = new ArrayList<>();
         workers.forEach((instanceId, date) -> {
-            if (now.getTime() - date.getTime() > keepAliveTimeout) {
+            if (now.getTime() - date.getTime() > keepAliveTimeout * 1000L) {
                 logger.warn("Worker {} is not responsive, terminating it", instanceId);
                 toTerminate.add(instanceId);
             }
