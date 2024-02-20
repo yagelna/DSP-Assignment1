@@ -131,6 +131,7 @@ public class WorkersHandler extends Thread {
 
         while (!terminate) {
             try {
+                logger.info("Checking workers status");
                 // Check if there are workers that are not responsive and terminate them
                 terminateNoneResponsiveWorkers();
                 // Check the number of running workers and if necessary add to reach min workers
@@ -147,7 +148,7 @@ public class WorkersHandler extends Thread {
                 } else if (workersDiff < 0) {
                     removeWorkers(Math.min(Math.abs(workersDiff), reduceThreshold));
                 }
-                Thread.sleep(threadSleepTime);
+                Thread.sleep(threadSleepTime * 1000L);
             } catch (InterruptedException e) {
                 logger.info("WorkersHandler thread was interrupted");
             } catch (Exception e) {
