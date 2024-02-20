@@ -5,7 +5,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.sqs.model.Message;
 
-import java.util.Set;
+import java.util.Date;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class sqsVisibilityTimeoutExtender extends Thread{
@@ -13,22 +14,27 @@ public class sqsVisibilityTimeoutExtender extends Thread{
     private final SqsOperations sqs = SqsOperations.getInstance();
     private final String queueUrl;
     private final int visibilityTimeout;
+    private final int maxVisibilityExtensionTime;
     private final int threadSleepTime;
-    private final Set<Message> inProcessMessages = ConcurrentHashMap.newKeySet();
+    private final Map<Message, Date> inProcessMessages = new ConcurrentHashMap<>();
     private volatile boolean terminate = false;
 
-    public sqsVisibilityTimeoutExtender(String queueUrl, int visibilityTimeout, int threadSleepTime) {
+    public sqsVisibilityTimeoutExtender(String queueUrl, int visibilityTimeout, int maxVisibilityExtensionTime,
+                                        int threadSleepTime) {
         this.queueUrl = queueUrl;
         this.visibilityTimeout = visibilityTimeout;
+        this.maxVisibilityExtensionTime = maxVisibilityExtensionTime;
         this.threadSleepTime = threadSleepTime;
     }
 
     public void addMessage(Message message) {
-        inProcessMessages.add(message);
+        inProcessMessages.put(message, new Date());
     }
 
     public void removeMessage(Message message) {
-        inProcessMessages.remove(message);
+        if (inProcessMessages.remove(message) == null) {
+            logger.warn("Message {} was already removed from sqsVisibilityTimeoutExtender", message.messageId());
+        }
         if (inProcessMessages.isEmpty() && terminate) {
             this.interrupt();
         }
@@ -38,8 +44,16 @@ public class sqsVisibilityTimeoutExtender extends Thread{
         while (!terminate || !inProcessMessages.isEmpty()) {
             logger.info("Extending visibility timeout for {} messages", inProcessMessages.size());
             try {
+                inProcessMessages.forEach((message, date) -> {
+                    if (new Date().getTime() - date.getTime() > maxVisibilityExtensionTime * 1000L) {
+                        logger.warn("Message {} has been in process for too long, skipping visibility timeout extension",
+                                message.messageId());
+                        removeMessage(message);
+                    }
+                });
                 sqs.extendVisibilityTimeoutBatch(queueUrl,
-                        inProcessMessages.stream().map(Message::receiptHandle).toList(), this.visibilityTimeout);
+                        inProcessMessages.keySet().stream().map(Message::receiptHandle).toList(),
+                        this.visibilityTimeout);
             } catch (Exception e) {
                 logger.warn("Failed to extend visibility timeout: {}", e.getMessage());
                 logger.debug("Failed to extend visibility timeout", e);

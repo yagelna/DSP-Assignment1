@@ -10,6 +10,7 @@ aws:
   processingThreads: 2
   keepAliveIntervalSeconds: 10
   consumerVisibilityTimeout: 30
+  consumerMaxVisibilityExtensionTime: 600
   consumerVisibilityThreadSleepTime: 10
   consumerMaxMessagesPerPoll: 5
   consumerMaxMessagesInFlight: 10

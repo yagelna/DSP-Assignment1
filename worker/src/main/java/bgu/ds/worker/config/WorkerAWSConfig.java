@@ -11,6 +11,7 @@ public interface WorkerAWSConfig {
     int processingThreads();
     int keepAliveIntervalSeconds();
     int consumerVisibilityTimeout();
+    int consumerMaxVisibilityExtensionTime();
     int consumerVisibilityThreadSleepTime();
     int consumerMaxMessagesPerPoll();
     int consumerMaxMessagesInFlight();

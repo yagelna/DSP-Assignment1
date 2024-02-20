@@ -8,6 +8,7 @@ public interface LocalAWSConfig {
     String sqsOutputQueuePrefix();
     int consumerThreads();
     int consumerVisibilityTimeout();
+    int consumerMaxVisibilityExtensionTime();
     int consumerVisibilityThreadSleepTime();
     String ec2Name();
     String instanceType();

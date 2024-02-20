@@ -89,7 +89,8 @@ public class LocalApp {
 
         // Start the consumer
         this.consumer = new SqsMessageConsumer(sqs.getQueueUrl(outputQueueName), config.consumerThreads(),
-                config.consumerVisibilityTimeout(), config.consumerVisibilityThreadSleepTime());
+                config.consumerVisibilityTimeout(), config.consumerMaxVisibilityExtensionTime(),
+                config.consumerVisibilityThreadSleepTime());
         consumer.registerProcessor(SqsMessageType.SEND_OUTPUT, new SqsOutputMessageProcessor(this));
         consumer.start();
 

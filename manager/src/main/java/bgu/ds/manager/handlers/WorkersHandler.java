@@ -125,7 +125,8 @@ public class WorkersHandler extends Thread {
         }
 
         SqsMessageConsumer keepAliveConsumer = new SqsMessageConsumer(keepAliveQueueUrl, config.consumerThreads(),
-                config.consumerVisibilityTimeout(), config.consumerVisibilityThreadSleepTime());
+                config.consumerVisibilityTimeout(), config.consumerMaxVisibilityExtensionTime(),
+                config.consumerVisibilityThreadSleepTime());
         keepAliveConsumer.registerProcessor(SqsMessageType.KEEP_ALIVE, new KeepAliveMessageProcessor(this));
         keepAliveConsumer.start();
 

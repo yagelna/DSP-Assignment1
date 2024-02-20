@@ -28,12 +28,12 @@ public class SqsMessageConsumer extends Thread {
 
 
 
-    public SqsMessageConsumer(String queueUrl, int threadsCount, int visibilityTimeout, int visibilityThreadSleepTime) {
-        this(queueUrl, threadsCount, visibilityTimeout, visibilityThreadSleepTime,
+    public SqsMessageConsumer(String queueUrl, int threadsCount, int visibilityTimeout, int maxVisibilityExtensionTime, int visibilityThreadSleepTime) {
+        this(queueUrl, threadsCount, visibilityTimeout, visibilityThreadSleepTime, maxVisibilityExtensionTime,
                 MAX_MESSAGES_PER_POLL, MAX_MESSAGES_IN_FLIGHT);
     }
 
-    public SqsMessageConsumer(String queueUrl, int threadsCount, int visibilityTimeout, int visibilityThreadSleepTime,
+    public SqsMessageConsumer(String queueUrl, int threadsCount, int visibilityTimeout, int maxVisibilityExtensionTime, int visibilityThreadSleepTime,
                               int maxMessagesPerPoll, int maxMessagesInFlight) {
         if (maxMessagesPerPoll > maxMessagesInFlight) {
             throw new IllegalArgumentException("maxMessagesInFlight must be greater or equal to maxMessagesPerPoll");
@@ -42,7 +42,7 @@ public class SqsMessageConsumer extends Thread {
         this.executorService = Executors.newFixedThreadPool(threadsCount);
         this.visibilityTimeout = visibilityTimeout;
         this.visibilityTimeoutExtender = new sqsVisibilityTimeoutExtender(queueUrl, visibilityTimeout,
-                visibilityThreadSleepTime);
+                maxVisibilityExtensionTime, visibilityThreadSleepTime);
         this.maxMessagesPerPoll = maxMessagesPerPoll;
         this.semaphore = new Semaphore(maxMessagesInFlight);
     }

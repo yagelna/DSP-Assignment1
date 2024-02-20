@@ -4,6 +4,7 @@ aws:
   sqsOutputQueuePrefix: "TasksOutputQueue"
   consumerThreads: 5
   consumerVisibilityTimeout: 30
+  consumerMaxVisibilityExtensionTime: 300
   consumerVisibilityThreadSleepTime: 10
   ec2Name: "Manager"
   instanceType: "t4g.medium"

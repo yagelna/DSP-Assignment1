@@ -17,6 +17,7 @@ public interface ManagerAWSConfig {
     int workersHandlerThreadSleepTime();
     int consumerThreads();
     int consumerVisibilityTimeout();
+    int consumerMaxVisibilityExtensionTime();
     int consumerVisibilityThreadSleepTime();
     String ec2Name();
     String instanceType();

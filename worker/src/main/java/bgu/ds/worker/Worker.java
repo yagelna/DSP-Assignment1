@@ -49,8 +49,9 @@ public class Worker {
         setup();
 
         this.consumer = new SqsMessageConsumer(sqs.getQueueUrl(config.sqsWorkersInputQueueName()), config.processingThreads(),
-                config.consumerVisibilityTimeout(), config.consumerVisibilityThreadSleepTime(),
-                config.consumerMaxMessagesPerPoll(), config.consumerMaxMessagesInFlight());
+                config.consumerVisibilityTimeout(), config.consumerMaxVisibilityExtensionTime(),
+                config.consumerVisibilityThreadSleepTime(), config.consumerMaxMessagesPerPoll(),
+                config.consumerMaxMessagesInFlight());
         this.consumer.registerProcessor(SqsMessageType.REVIEW_PROCESS, new SqsReviewProcessMessageProcessor(this));
         consumer.start();
 

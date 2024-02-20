@@ -203,7 +203,8 @@ public class Manager {
 
         String inputQueueUrl = sqs.getQueueUrl(config.sqsTasksInputQueueName());
         this.inputConsumer = new SqsMessageConsumer(inputQueueUrl, config.consumerThreads(),
-                config.consumerVisibilityTimeout(), config.consumerVisibilityThreadSleepTime());
+                config.consumerVisibilityTimeout(), config.consumerMaxVisibilityExtensionTime(),
+                config.consumerVisibilityThreadSleepTime());
         inputConsumer.registerProcessor(SqsMessageType.ADD_INPUT, new SqsInputMessageProcessor(this));
         inputConsumer.registerProcessor(SqsMessageType.SET_WORKERS_COUNT, new SqsSetWorkersCountMessageProcessor(this));
         inputConsumer.registerProcessor(SqsMessageType.TERMINATE_MANAGER, new SqsTerminateManagerMessageProcessor(this));
@@ -211,7 +212,8 @@ public class Manager {
 
         String outputQueueUrl = sqs.getQueueUrl(config.sqsWorkersOutputQueueName());
         this.outputConsumer = new SqsMessageConsumer(outputQueueUrl, config.consumerThreads(),
-                config.consumerVisibilityTimeout(), config.consumerVisibilityThreadSleepTime());
+                config.consumerVisibilityTimeout(), config.consumerMaxVisibilityExtensionTime(),
+                config.consumerVisibilityThreadSleepTime());
         outputConsumer.registerProcessor(SqsMessageType.REVIEW_COMPLETE, new SqsReviewCompleteMessageProcessor(this));
         outputConsumer.start();
 
