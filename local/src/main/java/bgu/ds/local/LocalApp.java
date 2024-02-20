@@ -28,22 +28,25 @@ public class LocalApp {
     final static SqsOperations sqs = SqsOperations.getInstance();
     final static LocalAWSConfig config = AWSConfigProvider.getConfig();
 
-    private static final LocalApp instance = new LocalApp();
-
     private SqsMessageConsumer consumer;
     private final Map<UUID, String> inputUUIDToOutputPath = new ConcurrentHashMap<>();
     private AtomicInteger inputFilesCount;
+    private final String[] inFilesPath;
+    private final String[] outFilesPath;
+    private final int tasksPerWorker;
+    private final boolean terminateManager;
 
-    private LocalApp() {}
-
-    public static LocalApp getInstance() {
-        return instance;
+    public LocalApp(String[] inFilesPath, String[] outFilesPath, int tasksPerWorker, boolean terminateManager) {
+        this.inFilesPath = inFilesPath;
+        this.outFilesPath = outFilesPath;
+        this.tasksPerWorker = tasksPerWorker;
+        this.terminateManager = terminateManager;
     }
 
     private void setup() {
         if (!ec2.isInstanceRunning(config.ec2Name())) {
-            ec2.createInstance(config.ec2Name(), config.instanceType(), config.ami(), config.instanceProfileName(),
-                    config.securityGroupName(), config.userDataCommands());
+            ec2.createInstance(config.ec2Name(), config.instanceType(), config.ami(), 1, 1,
+                    config.instanceProfileName(), config.securityGroupName(), config.userDataCommands());
         } else {
             logger.info("Instance {} is already running", config.ec2Name());
         }
@@ -70,7 +73,7 @@ public class LocalApp {
         }
     }
 
-    public void start(String[] inFilesPath, String[] outFilesPath, int tasksPerWorker, boolean terminate) {
+    public void start() {
         setup();
 
         // Send a message to the Manager to set the number of workers
@@ -87,7 +90,7 @@ public class LocalApp {
         // Start the consumer
         this.consumer = new SqsMessageConsumer(sqs.getQueueUrl(outputQueueName), config.consumerThreads(),
                 config.consumerVisibilityTimeout(), config.consumerVisibilityThreadSleepTime());
-        consumer.registerProcessor(SqsMessageType.SEND_OUTPUT, new SqsOutputMessageProcessor());
+        consumer.registerProcessor(SqsMessageType.SEND_OUTPUT, new SqsOutputMessageProcessor(this));
         consumer.start();
 
         // Send the input files to the Manager
@@ -107,7 +110,7 @@ public class LocalApp {
 
         sqs.deleteQueueIfExists(outputQueueName);
 
-        if (terminate) {
+        if (terminateManager) {
             logger.info("Terminating Manager instance");
             sqs.sendMessage(inputQueueUrl, new TerminateManagerMessage());
         }

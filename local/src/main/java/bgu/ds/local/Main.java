@@ -13,7 +13,7 @@ public class Main {
             System.exit(1);
         }
 
-        LocalApp localApp = LocalApp.getInstance();
-        localApp.start(inFilesPath, outFilesPath, tasksPerWorker, terminate);
+        LocalApp localApp = new LocalApp(inFilesPath, outFilesPath, tasksPerWorker, terminate);
+        localApp.start();
     }
 }

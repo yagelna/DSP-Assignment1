@@ -4,8 +4,12 @@ aws:
   sqsTasksInputQueueName: "TasksInputQueue"
   sqsWorkersInputQueueName: "WorkersInputQueue"
   sqsWorkersOutputQueueName: "WorkersOutputQueue"
+  workersKeepAliveQueueName: "WorkersKeepAliveQueue"
   minWorkersCount: 3
   maxWorkersCount: 8
+  workersKeepAliveTimeoutSeconds: 60
+  workersBootGracefulTime: 300
+  workersReduceThreshold: 1
   workersHandlerThreadSleepTime: 30
   consumerThreads: 5
   consumerVisibilityTimeout: 30

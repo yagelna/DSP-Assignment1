@@ -1,10 +1,12 @@
 package bgu.ds.common.awssdk;
 
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.regions.internal.util.EC2MetadataUtils;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.*;
 
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 
@@ -22,30 +24,32 @@ public class Ec2Operations {
         return instance;
     }
 
-    public void createInstance(String name, String instanceType, String ami, String instanceProfileName,
-                               String securityGroupName, List<String> userDataCommands) {
+    public List<String> createInstance(String name, String instanceType, String ami, int minCount, int maxCount,
+                                         String instanceProfileName, String securityGroupName,
+                                         List<String> userDataCommands) {
         RunInstancesRequest runRequest = RunInstancesRequest.builder()
                 .instanceType(InstanceType.fromValue(instanceType))
                 .imageId(ami)
-                .maxCount(1)
-                .minCount(1)
+                .minCount(minCount)
+                .maxCount(maxCount)
                 .userData(getEC2userData(userDataCommands))
                 .iamInstanceProfile(IamInstanceProfileSpecification.builder().name(instanceProfileName).build())
                 .securityGroups(securityGroupName)
                 .build();
         RunInstancesResponse response = ec2Client.runInstances(runRequest);
-        String instanceId = response.instances().get(0).instanceId();
+
         software.amazon.awssdk.services.ec2.model.Tag tag = Tag.builder()
                 .key("Name")
                 .value(name)
                 .build();
 
         CreateTagsRequest tagRequest = CreateTagsRequest.builder()
-                .resources(instanceId)
+                .resources(response.instances().stream().map(Instance::instanceId).toList())
                 .tags(tag)
                 .build();
 
         ec2Client.createTags(tagRequest);
+        return response.instances().stream().map(Instance::instanceId).toList();
     }
 
     public boolean isInstanceRunning(String name) {
@@ -59,7 +63,20 @@ public class Ec2Operations {
                         instance.state().name().equals(InstanceStateName.PENDING));
     }
 
-    public boolean terminateAllInstances(String name) {
+    public List<String> getRunningInstancesIds(String name) {
+        DescribeInstancesRequest request = DescribeInstancesRequest.builder()
+                .filters(Filter.builder().name("tag:Name").values(name).build())
+                .build();
+        DescribeInstancesResponse response = ec2Client.describeInstances(request);
+        return response.reservations().stream()
+                .flatMap(reservation -> reservation.instances().stream())
+                .filter(instance -> instance.state().name().equals(InstanceStateName.RUNNING) ||
+                        instance.state().name().equals(InstanceStateName.PENDING))
+                .map(Instance::instanceId)
+                .toList();
+    }
+
+    public List<String> terminateAllInstances(String name) {
         DescribeInstancesRequest request = DescribeInstancesRequest.builder()
             .filters(Filter.builder().name("tag:Name").values(name).build())
             .build();
@@ -71,34 +88,42 @@ public class Ec2Operations {
                 .map(Instance::instanceId)
                 .toList();
         if (instanceIds.isEmpty()) {
-            return false;
+            return new ArrayList<>();
         }
         TerminateInstancesRequest terminateRequest = TerminateInstancesRequest.builder()
                 .instanceIds(instanceIds)
                 .build();
-        ec2Client.terminateInstances(terminateRequest);
-        return true;
+        return ec2Client.terminateInstances(terminateRequest).terminatingInstances().stream().
+                map(InstanceStateChange::instanceId).toList();
     }
 
-    public boolean terminateInstance(String name) {
+    public List<String> terminateInstances(String name, int amount) {
         DescribeInstancesRequest request = DescribeInstancesRequest.builder()
                 .filters(Filter.builder().name("tag:Name").values(name).build())
                 .build();
         DescribeInstancesResponse response = ec2Client.describeInstances(request);
-        String instanceId = response.reservations().stream()
+        List<String> instanceIds = response.reservations().stream()
                 .flatMap(reservation -> reservation.instances().stream())
                 .filter(instance -> instance.state().name().equals(InstanceStateName.RUNNING) ||
                         instance.state().name().equals(InstanceStateName.PENDING))
                 .map(Instance::instanceId)
-                .findFirst().orElse(null);
-        if (instanceId == null) {
-            return false;
+                .limit(amount).toList();
+        if (instanceIds.isEmpty()) {
+            return null;
         }
         TerminateInstancesRequest terminateRequest = TerminateInstancesRequest.builder()
-                .instanceIds(instanceId)
+                .instanceIds(instanceIds)
                 .build();
-        ec2Client.terminateInstances(terminateRequest);
-        return true;
+        return ec2Client.terminateInstances(terminateRequest).terminatingInstances().stream().
+                map(InstanceStateChange::instanceId).toList();
+    }
+
+    public List<String> terminateInstances(List<String> instancesId) {
+        TerminateInstancesRequest terminateRequest = TerminateInstancesRequest.builder()
+                .instanceIds(instancesId)
+                .build();
+        return ec2Client.terminateInstances(terminateRequest).terminatingInstances().stream().
+                map(InstanceStateChange::instanceId).toList();
     }
 
     private static String getEC2userData(List<String> userDataCommands) {
@@ -110,5 +135,9 @@ public class Ec2Operations {
             e.printStackTrace();
         }
         return base64UserData;
+    }
+
+    public String getInstanceId() {
+        return EC2MetadataUtils.getInstanceInfo().getInstanceId();
     }
 }

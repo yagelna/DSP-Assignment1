@@ -3,7 +3,7 @@ package bgu.ds.manager;
 
 public class Main {
     public static void main(String[] args) {
-        Manager manager = Manager.getInstance();
+        Manager manager = new Manager();
         manager.start();
     }
 }

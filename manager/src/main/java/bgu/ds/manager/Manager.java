@@ -39,8 +39,6 @@ public class Manager {
     final static Ec2Operations ec2 = Ec2Operations.getInstance();
     private static final Logger logger = LoggerFactory.getLogger(Manager.class);
 
-    private static final Manager instance = new Manager();
-
     private SqsMessageConsumer inputConsumer;
     private SqsMessageConsumer outputConsumer;
     private WorkersHandler workersHandler;
@@ -50,11 +48,7 @@ public class Manager {
     private final Map<UUID, String> inputUUIDToOutputQueueName = new ConcurrentHashMap<>();
     private volatile boolean terminate = false;
 
-    private Manager() {
-    }
-
-    public static Manager getInstance() {
-        return instance;
+    public Manager() {
     }
 
     public boolean setTasksPerWorker(int tasksPerWorker) {
@@ -195,27 +189,30 @@ public class Manager {
         sqs.createQueueIfNotExists(config.sqsTasksInputQueueName());
         sqs.createQueueIfNotExists(config.sqsWorkersInputQueueName());
         sqs.createQueueIfNotExists(config.sqsWorkersOutputQueueName());
+        sqs.createQueueIfNotExists(config.workersKeepAliveQueueName());
     }
 
     public void start() {
         setup();
 
-        this.workersHandler = new WorkersHandler(config.minWorkersCount(), config.maxWorkersCount(),
+        this.workersHandler = new WorkersHandler(this, config.minWorkersCount(), config.maxWorkersCount(),
+                sqs.getQueueUrl(config.workersKeepAliveQueueName()), config.workersKeepAliveTimeoutSeconds(),
+                config.workersBootGracefulTime(), config.workersReduceThreshold(),
                 config.workersHandlerThreadSleepTime());
         workersHandler.start();
 
         String inputQueueUrl = sqs.getQueueUrl(config.sqsTasksInputQueueName());
         this.inputConsumer = new SqsMessageConsumer(inputQueueUrl, config.consumerThreads(),
                 config.consumerVisibilityTimeout(), config.consumerVisibilityThreadSleepTime());
-        inputConsumer.registerProcessor(SqsMessageType.ADD_INPUT, new SqsInputMessageProcessor());
-        inputConsumer.registerProcessor(SqsMessageType.SET_WORKERS_COUNT, new SqsSetWorkersCountMessageProcessor());
-        inputConsumer.registerProcessor(SqsMessageType.TERMINATE_MANAGER, new SqsTerminateManagerMessageProcessor());
+        inputConsumer.registerProcessor(SqsMessageType.ADD_INPUT, new SqsInputMessageProcessor(this));
+        inputConsumer.registerProcessor(SqsMessageType.SET_WORKERS_COUNT, new SqsSetWorkersCountMessageProcessor(this));
+        inputConsumer.registerProcessor(SqsMessageType.TERMINATE_MANAGER, new SqsTerminateManagerMessageProcessor(this));
         inputConsumer.start();
 
         String outputQueueUrl = sqs.getQueueUrl(config.sqsWorkersOutputQueueName());
         this.outputConsumer = new SqsMessageConsumer(outputQueueUrl, config.consumerThreads(),
                 config.consumerVisibilityTimeout(), config.consumerVisibilityThreadSleepTime());
-        outputConsumer.registerProcessor(SqsMessageType.REVIEW_COMPLETE, new SqsReviewCompleteMessageProcessor());
+        outputConsumer.registerProcessor(SqsMessageType.REVIEW_COMPLETE, new SqsReviewCompleteMessageProcessor(this));
         outputConsumer.start();
 
         try {

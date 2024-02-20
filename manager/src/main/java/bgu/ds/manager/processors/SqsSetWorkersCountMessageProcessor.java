@@ -7,7 +7,11 @@ import bgu.ds.common.sqs.protocol.SqsMessageType;
 import bgu.ds.manager.Manager;
 
 public class SqsSetWorkersCountMessageProcessor implements SqsMessageProcessor {
-    private final static Manager manager = Manager.getInstance();
+    private final Manager manager;
+
+    public SqsSetWorkersCountMessageProcessor(Manager manager) {
+        this.manager = manager;
+    }
 
     @Override
     public void process(SqsMessage message) {

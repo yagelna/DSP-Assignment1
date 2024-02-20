@@ -5,7 +5,11 @@ import bgu.ds.common.sqs.protocol.*;
 import bgu.ds.worker.Worker;
 
 public class SqsReviewProcessMessageProcessor implements SqsMessageProcessor {
-    final static Worker worker = Worker.getInstance();
+    private final Worker worker;
+
+    public SqsReviewProcessMessageProcessor(Worker worker) {
+        this.worker = worker;
+    }
 
     @Override
     public void process(SqsMessage message) {

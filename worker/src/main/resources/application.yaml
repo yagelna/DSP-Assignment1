@@ -1,12 +1,14 @@
 aws:
   sqsWorkersInputQueueName: "WorkersInputQueue"
   sqsWorkersOutputQueueName: "WorkersOutputQueue"
+  workersKeepAliveQueueName: "WorkersKeepAliveQueue"
   entityTypes:
     - PERSON
     - LOCATION
     - ORGANIZATION
-  sarcasmThreshold: 2
+  sarcasmThreshold: 3
   processingThreads: 2
+  keepAliveIntervalSeconds: 10
   consumerVisibilityTimeout: 30
   consumerVisibilityThreadSleepTime: 10
   consumerMaxMessagesPerPoll: 5

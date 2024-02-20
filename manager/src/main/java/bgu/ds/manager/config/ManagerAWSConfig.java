@@ -8,8 +8,12 @@ public interface ManagerAWSConfig {
     String sqsTasksInputQueueName();
     String sqsWorkersInputQueueName();
     String sqsWorkersOutputQueueName();
+    String workersKeepAliveQueueName();
     int minWorkersCount();
     int maxWorkersCount();
+    int workersKeepAliveTimeoutSeconds();
+    int workersBootGracefulTime();
+    int workersReduceThreshold();
     int workersHandlerThreadSleepTime();
     int consumerThreads();
     int consumerVisibilityTimeout();

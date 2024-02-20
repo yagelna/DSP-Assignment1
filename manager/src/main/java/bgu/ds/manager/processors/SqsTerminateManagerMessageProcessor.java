@@ -6,7 +6,11 @@ import bgu.ds.common.sqs.protocol.SqsMessageType;
 import bgu.ds.manager.Manager;
 
 public class SqsTerminateManagerMessageProcessor implements SqsMessageProcessor {
-    private final static Manager manager = Manager.getInstance();
+    private final Manager manager;
+
+    public SqsTerminateManagerMessageProcessor(Manager manager) {
+        this.manager = manager;
+    }
 
     public void process(SqsMessage message) {
         if (message.getMessageType() != SqsMessageType.TERMINATE_MANAGER) {

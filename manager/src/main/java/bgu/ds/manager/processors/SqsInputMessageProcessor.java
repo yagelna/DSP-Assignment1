@@ -9,7 +9,11 @@ import bgu.ds.manager.Manager;
 import java.io.IOException;
 
 public class SqsInputMessageProcessor implements SqsMessageProcessor {
-    private final static Manager manager = Manager.getInstance();
+    private final Manager manager;
+
+    public SqsInputMessageProcessor(Manager manager) {
+        this.manager = manager;
+    }
 
     @Override
     public void process(SqsMessage message) {
