@@ -156,6 +156,7 @@ public class WorkersHandler extends Thread {
                 logger.error("An error occurred in WorkersHandler thread", e);
             }
         }
+        keepAliveConsumer.shutdown();
         stopAllWorkers();
     }
 

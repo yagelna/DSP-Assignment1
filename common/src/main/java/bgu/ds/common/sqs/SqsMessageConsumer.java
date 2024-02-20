@@ -29,7 +29,7 @@ public class SqsMessageConsumer extends Thread {
 
 
     public SqsMessageConsumer(String queueUrl, int threadsCount, int visibilityTimeout, int maxVisibilityExtensionTime, int visibilityThreadSleepTime) {
-        this(queueUrl, threadsCount, visibilityTimeout, visibilityThreadSleepTime, maxVisibilityExtensionTime,
+        this(queueUrl, threadsCount, visibilityTimeout, maxVisibilityExtensionTime, visibilityThreadSleepTime,
                 MAX_MESSAGES_PER_POLL, MAX_MESSAGES_IN_FLIGHT);
     }
 
